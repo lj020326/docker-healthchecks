@@ -9,6 +9,9 @@ LABEL maintainer="alex-phillips"
 
 ENV CRYPTOGRAPHY_DONT_BUILD_RUST=true
 
+mkdir /app/healthchecks
+COPY app/ /app/healthchecks/
+
 RUN \
  echo "**** install build packages ****" && \
  apk add --no-cache --upgrade --virtual=build-dependencies \
@@ -31,18 +34,6 @@ RUN \
 	uwsgi \
 	uwsgi-python \
 	mariadb-connector-c-dev && \
- echo "**** install healthchecks ****" && \
- mkdir -p /app/healthchecks && \
- if [ -z ${HEALTHCHECKS_RELEASE+x} ]; then \
-	HEALTHCHECKS_RELEASE=$(curl -sX GET "https://api.github.com/repos/healthchecks/healthchecks/releases/latest" \
-	| awk '/tag_name/{print $4;exit}' FS='[""]'); \
- fi && \
- curl -o \
- /tmp/healthchecks.tar.gz -L \
-	"https://github.com/healthchecks/healthchecks/archive/${HEALTHCHECKS_RELEASE}.tar.gz" && \
- tar xf \
- /tmp/healthchecks.tar.gz -C \
-	/app/healthchecks/ --strip-components=1 && \
  echo "**** install pip packages ****" && \
  python3 -m ensurepip && \
  rm -rf /usr/lib/python*/ensurepip && \
